@@ -1,0 +1,115 @@
+import { storage } from '@/lib/firebase';
+import React, { useRef, useState } from 'react'
+import { deleteObject, ref, uploadBytes, getDownloadURL, listAll, list } from "firebase/storage";
+
+const Firebase = () => {
+
+  let [preview, setPreview] = useState();
+  let [loading, setLoading] = useState(false);
+  let [imgUrl, setImgUrl] = useState([]);
+
+  let fileEle=useRef();
+
+  function pre(e){
+    let file = new FileReader();
+    file.readAsDataURL( e.target.files[0] )
+
+    file.onload = (e)=>{
+      setPreview(e.target.result)
+    }
+  }
+
+  function save(e){
+    e.preventDefault();
+    const file = e.target.photo.files[0];
+    let storageRef = ref(storage, file.name);
+
+    setLoading(true);
+    uploadBytes(storageRef, file)
+    .then(res=>{
+      setLoading(false);   
+      setPreview('');
+    })   
+  }
+
+  function getImages(){
+
+    listAll( ref(storage) )
+    .then(async (res)=>{
+
+      let url = [];      
+
+      for(let i=0; i<res.items.length; i++){
+        let name = res.items[i].name;
+
+        url.push(
+           { name, url:await getDownloadURL( res.items[i] )}
+        )
+      }
+      
+      setImgUrl(url);
+
+    })
+
+  };
+
+  function delImage(name){
+
+    setLoading(true);
+
+    deleteObject( ref(storage, name) )
+    .then(res=>{
+      setLoading(false);
+      getImages();
+    })
+
+  }
+
+
+  return (
+    <div>
+      <div>이미지 미리보기</div>
+      
+      <div className='preview'>        
+        <img src={preview} />
+        <button onClick={()=>fileEle.current.click()}>카메라아이콘</button>
+      </div>
+
+      <form onSubmit={save}>  
+        <input 
+        style={{display:'none'}}
+        ref={fileEle} 
+        type="file" name="photo" onChange={pre} multiple />
+
+        <button>저장</button>
+      </form>
+
+      {
+        loading &&
+        <div className='loading'><img src="./loading.gif"/></div>
+      }
+
+
+      <h2>
+        Firebase Storage 가져오기
+        <button onClick={getImages}>리스트</button>
+      </h2>
+
+      <ul className='firebase-list'>
+      {
+        imgUrl.map((item)=>
+          <li>
+            <figure><img src={item.url}/></figure>
+            <button onClick={()=>delImage(item.name)}>삭제</button>
+          </li>
+        )
+      }
+      </ul>
+
+    </div>
+
+  )
+}
+
+export default Firebase
+
