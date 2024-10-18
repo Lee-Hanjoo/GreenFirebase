@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# Ignore Google Cloud credentials
+*.json
+
 # next.js
 /.next/
 /out/
