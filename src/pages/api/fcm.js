@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     const serviceAccount = {
         projectId:'test-94b65',
         privateKey: '1234',
-        clientEmail:'firebase-adminsdk-oh6qv@test-94b65.iam.gserviceaccount.com'
+        clientEmail: '1231'
     }
     if (!admin.apps.length) {
       admin.initializeApp(
